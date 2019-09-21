@@ -42,6 +42,7 @@
      [
         live_check_works,
         user_auth_fails,
+        send_msg_without_auth,
         when_user_connects_he_appeares_in_session,
         user_sends_session_with_other_users_login,
         message_is_sent_from_user_to_not_connected_user,
@@ -63,7 +64,7 @@ live_check_works(_Config) ->
 
 user_auth_fails(_Config) ->
     Login = "auth fail",
-    {ok, WS} = ws_client:start_link(?URL_USER_CONN, Login, "dummy token"),
+    {ok, WS} = ws_client:start_link(?URL_USER_CONN, Login, "fail"),
     timer:sleep(100), % time to connect
     WS ! auth,
     timer:sleep(100), % time for request
@@ -72,6 +73,12 @@ user_auth_fails(_Config) ->
     ?assertEqual(Login, AuthFailMsg#msg.to),
     ?assertEqual("401", AuthFailMsg#msg.content),
     ?assertEqual('HTTP_RESPONSE', AuthFailMsg#msg.message_type),
+    ok.
+
+send_msg_without_auth(_Config) ->
+    {ok, WS} = ws_client:start_link(?URL_USER_CONN, "Jan", "xd"),
+    timer:sleep(100), % time to connect
+    send_msg_assert_result(WS, "Jan", "Hi", "401"),
     ok.
 
 when_user_connects_he_appeares_in_session(_Config) ->

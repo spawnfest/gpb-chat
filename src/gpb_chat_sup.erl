@@ -37,6 +37,7 @@ init(_) ->
       period => 10},
     Children = [
         cowboy_sup_child(),
+        auth_sup_child(),
         session_table()
     ],
     {ok, {SupFlags, Children}}.
@@ -44,6 +45,13 @@ init(_) ->
 cowboy_sup_child() ->
     #{id => my_cowboy_sup,
 	  start => {my_cowboy_sup, start_link, []},
+      restart => permanent,
+      shutdown => brutal_kill,
+      type => supervisor}.
+
+auth_sup_child() ->
+    #{id => auth_sup,
+	  start => {auth_sup, start_link, []},
       restart => permanent,
       shutdown => brutal_kill,
       type => supervisor}.
