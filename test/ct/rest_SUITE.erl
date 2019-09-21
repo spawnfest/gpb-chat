@@ -40,11 +40,12 @@
 
  all() ->
      [
-        % live_check_works,
-        % user_auth_fails,
-        % when_user_connects_he_appeares_in_session,
-        % message_is_sent_from_user_to_not_connected_user,
-        message_is_sent_from_user_and_delivered_to_connected_user
+        live_check_works,
+        user_auth_fails,
+        when_user_connects_he_appeares_in_session,
+        message_is_sent_from_user_to_not_connected_user,
+        message_is_sent_from_user_and_delivered_to_connected_user,
+        many_messages_are_sent_from_user_and_delivered_to_connected_user
     ].
 
 
@@ -96,6 +97,23 @@ message_is_sent_from_user_and_delivered_to_connected_user(_Config) ->
     ?assertEqual(MsgFromAlek#msg.from, LoginAlek),
     ?assertEqual(MsgFromAlek#msg.to, LoginJulia),
     ?assertEqual(MsgFromAlek#msg.content, Content),
+    ok.
+
+many_messages_are_sent_from_user_and_delivered_to_connected_user(_Config) ->
+    LoginAlek = "Alek",
+    LoginJulia = "Julia",
+    Contents = ["A", "B", "C"],
+    WSAlek = connect_and_authenticate_succesfully(LoginAlek, "dummy token"),
+    WSJulia = connect_and_authenticate_succesfully(LoginJulia, "dummy token"),
+    lists:map(
+        fun(C) ->
+            send_msg_assert_result(WSAlek, LoginJulia, C, "200")
+        end, Contents),
+    timer:sleep(100),
+    [MsgC, MsgB, MsgA] = get_all_msgs(WSJulia),
+    ?assertEqual(MsgA#msg.content, "A"),
+    ?assertEqual(MsgB#msg.content, "B"),
+    ?assertEqual(MsgC#msg.content, "C"),
     ok.
  %%--------------------------------------------------------------------
  %% Helper functions
