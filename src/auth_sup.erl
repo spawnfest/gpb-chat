@@ -17,7 +17,6 @@ init(Opts) ->
     init(?AUTH_MODULE, Opts).
 
 init(dummy_test_auth_module, Opts) ->
-    Opts = application:get_env(gpb_chat, auth_opts),
     auth_api:start(Opts),
     {ok, {{one_for_all, 10, 10}, []}};
 % add your auth module init finction here :)
