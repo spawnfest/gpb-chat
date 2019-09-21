@@ -35,9 +35,9 @@ websocket_handle({text, Msg}, State = not_authenticated) ->
 			{auth_fail_msg(DecodedMsg), State}
 		end,
 		{reply, {text, msg:encode_msg(Response)}, NewState};
-websocket_handle({text, Msg}, State) ->
+websocket_handle({text, Msg}, #{user := Login} = State) ->
 	DecodedMsg = msg:decode_msg(Msg, msg),
-	RespMsg = handle_msg(DecodedMsg),
+	RespMsg = handle_msg(DecodedMsg, Login),
 	{reply, {text, msg:encode_msg(RespMsg)}, State};
 websocket_handle(_Data, State) ->
 	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, _Data]),
@@ -71,6 +71,11 @@ success_msg(DecodedMsg) ->
 	#msg{from = "server", to = DecodedMsg#msg.from,
 		 message_type = 'HTTP_RESPONSE', content = "200",
 		 id = DecodedMsg#msg.id}.
+
+handle_msg(DecodedMsg = #msg{from = Login}, Login) ->
+	handle_msg(DecodedMsg);
+handle_msg(DecodedMsg, _) ->
+	auth_fail_msg(DecodedMsg).
 
 handle_msg(DecodedMsg = #msg{message_type = 'MESSAGE', to = To}) ->
 	case session_table:get_user_sesions(To) of
