@@ -1,4 +1,0 @@
-message http_response {
-    required int32 code = 1 [default=501];
-    required string msg = 2 [default = "Not Implemented"];
-}

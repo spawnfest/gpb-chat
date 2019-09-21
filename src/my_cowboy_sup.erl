@@ -22,7 +22,8 @@
 start_link() ->
     Dispatch = cowboy_router:compile([
 		{'_', [
-			{"/", live_check, []}
+			{"/", live_check, []},
+			{"/user/connect", user_ws_connection, []}
 		]}
 	]),
 	{ok, _} = cowboy:start_clear(http, [{port, 8765}], #{

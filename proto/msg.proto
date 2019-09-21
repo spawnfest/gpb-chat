@@ -1,0 +1,13 @@
+message msg {
+    required string from = 1 [default = 'server']; //user login or "server"
+    required string to = 2 [default = 'server']; //user login or "server"
+    required string content = 3 [default = ''];
+    required string timestamp = 4 [default = ''];
+    required string id = 5 [default = ''];
+    enum msg_type {
+        HTTP_RESPONSE = 0;
+        AUTH_TOKEN = 1;
+        MESSAGE = 2;
+      }
+    required msg_type message_type = 6 [default = HTTP_RESPONSE];
+}

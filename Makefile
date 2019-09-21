@@ -1,5 +1,4 @@
 shell:
-	
 	rebar3 shell
 
 compile:
