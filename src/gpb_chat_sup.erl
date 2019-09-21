@@ -30,9 +30,27 @@ start_link() ->
 %% Optional keys are restart, shutdown, type, modules.
 %% Before OTP 18 tuples must be used to specify a child. e.g.
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
-init([]) ->
-    {ok, {{one_for_all, 0, 1}, []}}.
 
-%%====================================================================
-%% Internal functions
-%%====================================================================
+init(_) ->
+    SupFlags = #{strategy => one_for_one,
+      intensity => 10,
+      period => 10},
+    Children = [
+        cowboy_sup_child(),
+        session_table()
+    ],
+    {ok, {SupFlags, Children}}.
+
+cowboy_sup_child() ->
+    #{id => my_cowboy_sup,
+	  start => {my_cowboy_sup, start_link, []},
+      restart => permanent,
+      shutdown => brutal_kill,
+      type => supervisor}.
+
+session_table() ->
+    #{id => session_table,
+	  start => {session_table, start_link, []},
+      restart => permanent,
+      shutdown => brutal_kill,
+      type => worker}.

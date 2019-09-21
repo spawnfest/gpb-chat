@@ -9,7 +9,6 @@
 
 %% Application callbacks
 -export([start/2, stop/1]).
--export([init/1]).
 
 %%====================================================================
 %% API
@@ -25,19 +24,3 @@ stop(_State) ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
-
-init(_) ->
-    SupFlags = #{strategy => one_for_one,
-      intensity => 10,
-      period => 10},
-    Children = [
-        cowboy_sup_child()
-    ],
-    {ok,{SupFlags,Children}}.
-
-cowboy_sup_child() ->
-    #{id => cowboy_sup,
-	  start => {cowboy_sup, start_link, []},
-      restart => permanent,
-      shutdown => brutal_kill,
-      type => supervisor}.

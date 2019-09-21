@@ -56,8 +56,6 @@ live_check_works(_Config) ->
 
 live_check() ->
     Url = "http://127.0.0.1:8765",
-    % Headers = [],
-    % ContentType = "application/protobuf",
     {ok, Client} = fusco:start_link(Url, []),
     {ok, Result} = fusco:request(Client, <<"/">>, <<"GET">>, [], [], 5000),
     Result.
