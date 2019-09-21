@@ -1,6 +1,10 @@
 {"1.1.0",
 [{<<"cowboy">>,{pkg,<<"cowboy">>,<<"2.6.3">>},0},
  {<<"cowlib">>,{pkg,<<"cowlib">>,<<"2.7.3">>},1},
+ {<<"fusco">>,
+  {git,"https://github.com/esl/fusco.git",
+       {ref,"de08adef32d12f0984d6d1c6fec28be207db2e7e"}},
+  0},
  {<<"gpb">>,{pkg,<<"gpb">>,<<"4.10.2">>},0},
  {<<"ranch">>,{pkg,<<"ranch">>,<<"1.7.1">>},1}]}.
 [

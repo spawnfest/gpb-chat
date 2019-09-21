@@ -22,3 +22,16 @@ Proto files are generated with `make compile`.
 ### How to run?
 
 `make shell`
+
+### API
+
+#### Live check
+
+##### When works
+
+Stayin' Alive
+
+##### When does not work
+
+curl: (7) Failed to connect to 127.0.0.1 port 8765: Connection refused
+
