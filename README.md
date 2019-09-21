@@ -35,3 +35,28 @@ Stayin' Alive
 
 curl: (7) Failed to connect to 127.0.0.1 port 8765: Connection refused
 
+#### /user/connect with web sockets
+
+User A sends `AUTH_TOKEN` message to server which reply's with one of:
+ - `HTTP_RESPONSE` with content `"200"` and allows for other type of messages, and connection is added to `session table`,
+ - `HTTP_RESPONSE` with content `"401"` and allows only for `AUTH_TOKEN`.
+
+When User A authenticates successfully he or she can send `MESSAGE`,
+only messages where `from` is equal to users `login` are than allowed.
+When `from` is not equal to websocket users `login`, `HTTP_RESPONSE` with content `"401"`.
+
+User can send message to another user knowing his or her login.
+Only when both users are connected messages are delivered:
+
+User A sends msg`MESSAGE`
+```
+msg{
+    message_type = MESSAGE,
+    from = "A",
+    to = "B",
+    content = "Hello B"
+}
+```
+If user B is not connected (no records in `session table`), than `HTTP_RESPONSE` with content `"401"` is responded. If user B is connected than message is passed to all users B sessions and user A receives `HTTP_RESPONSE` with content `"200"`.
+
+When connection is terminated it is removed from `session table`.
