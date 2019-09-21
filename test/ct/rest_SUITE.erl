@@ -43,6 +43,7 @@
         live_check_works,
         user_auth_fails,
         when_user_connects_he_appeares_in_session,
+        user_sends_session_with_other_users_login,
         message_is_sent_from_user_to_not_connected_user,
         message_is_sent_from_user_and_delivered_to_connected_user,
         many_messages_are_sent_from_user_and_delivered_to_connected_user
@@ -77,6 +78,16 @@ when_user_connects_he_appeares_in_session(_Config) ->
     LoginAlek = "Alek",
     _WSAlek = connect_and_authenticate_succesfully(LoginAlek, "dummy token"),
     [_Session] = session_table:get_user_sesions(LoginAlek),
+    ok.
+
+user_sends_session_with_other_users_login(_Config) ->
+    WS = connect_and_authenticate_succesfully("Alek", "dummy token"),
+    WS ! {send_msg, "Krzys", "Kasia", "Ho Ho Ho"},
+    timer:sleep(100), % time for request
+    [AuthFailMsg] = get_all_msgs(WS),
+    ?assertEqual("server", AuthFailMsg#msg.from),
+    ?assertEqual("401", AuthFailMsg#msg.content),
+    ?assertEqual('HTTP_RESPONSE', AuthFailMsg#msg.message_type),
     ok.
 
 message_is_sent_from_user_to_not_connected_user(_Config) ->

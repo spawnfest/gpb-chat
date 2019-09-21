@@ -37,6 +37,9 @@ websocket_info(auth, _ConnState, State) ->
     #{login := Login, token := Token} = State,
     BinAuthToken = make_auth_token(Login, Token),
     {reply, {text, BinAuthToken}, State};
+websocket_info({send_msg, FromLogin, ToLogin, Content}, _ConnState, State) ->
+    BinMsg = make_msg(FromLogin, ToLogin, Content),
+    {reply, {text, BinMsg}, State};
 websocket_info({send_msg, ToLogin, Content}, _ConnState, State) ->
     #{login := FromLogin} = State,
     BinMsg = make_msg(FromLogin, ToLogin, Content),
