@@ -10,6 +10,11 @@ Project tries to provide following changes:
 
 Proto files are generated with `make compile`.
 
+### Requirements
+
+- Erlang OTP version 22
+- rebar3
+
 ### How to test?
 
 `make test_all`
