@@ -1,11 +1,13 @@
 {application, gpb_chat,
- [{description, "An OTP application"},
+ [{description, "A small, prototype websocket google protobuf based chat server."},
   {vsn, "0.1.0"},
   {registered, []},
   {mod, {gpb_chat_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    ranch,
+    cowboy
    ]},
   {env,[]},
   {modules, []},
