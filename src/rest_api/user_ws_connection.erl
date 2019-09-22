@@ -8,17 +8,21 @@
 -export([websocket_info/2]).
 -export([terminate/3]).
 
+-record(state, {is_authenticated = false,
+               users_login,
+			   session_id}).
+
 %%====================================================================
 %% API functions
 %%====================================================================
 
 init(Req, _Opts) ->
-	{cowboy_websocket, Req, not_authenticated}.
+	{cowboy_websocket, Req, #state{}}.
 
 websocket_init(State) ->
 	{ok, State}.
 
-websocket_handle({binary, Msg}, State = not_authenticated) ->
+websocket_handle({binary, Msg}, #state{is_authenticated = false} = State) ->
 	DecodedMsg = msg:decode_msg(Msg, msg),
 	logger:debug("DecodedMsg = ~p", [DecodedMsg]),
 	{Response, NewState} = case DecodedMsg#msg.message_type of
@@ -27,7 +31,8 @@ websocket_handle({binary, Msg}, State = not_authenticated) ->
 				true -> 
 					UserLogin = DecodedMsg#msg.from,
 					SessionId = session_table:add_session(UserLogin, self()),
-					NewSState = #{session_id => SessionId, user => UserLogin},
+					NewSState = State#state{ is_authenticated = true,
+						session_id = SessionId, users_login = UserLogin},
 					{success_msg(DecodedMsg), NewSState};
 				_ -> {auth_fail_msg(DecodedMsg), State}
 			end;
@@ -36,7 +41,7 @@ websocket_handle({binary, Msg}, State = not_authenticated) ->
 		end,
 		logger:debug("Response = ~p", [Response]),
 		{reply, {binary, msg:encode_msg(Response)}, NewState};
-websocket_handle({binary, Msg}, #{user := Login} = State) ->
+websocket_handle({binary, Msg}, #state{users_login = Login} = State) ->
 	DecodedMsg = msg:decode_msg(Msg, msg),
 	logger:debug("DecodedMsg = ~p", [DecodedMsg]),
 	RespMsg = handle_msg(DecodedMsg, Login),
@@ -46,17 +51,17 @@ websocket_handle(_Data, State) ->
 	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, _Data]),
 	{ok, State}.
 
-websocket_info(Msg = #msg{to = To}, #{user := To} = State) ->
+websocket_info(Msg = #msg{to = To}, #state{users_login = To} = State) ->
 	logger:debug("Sending ~p ~p:~p, ~p", [self(), ?MODULE, ?FUNCTION_NAME, Msg]),
 	{reply, {binary, msg:encode_msg(Msg)}, State};
 websocket_info(Info, State) ->
 	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, Info]),
 	{ok, State}.
 
-terminate(_Reason, _PartialReq, #{} = State) ->
-	#{session_id := SessionId, user := UserLogin} = State,
-	session_table:remove_user_sesions(UserLogin, SessionId),
-	ok;
+terminate(_Reason, _PartialReq, 
+	#state{session_id = SessionId, users_login = UserLogin}) ->
+		session_table:remove_user_sesions(UserLogin, SessionId),
+		ok;
 terminate(Reason, _PartialReq, State) ->
 	logger:error("~p:~p, ~p ~p", [?MODULE, ?FUNCTION_NAME, Reason, State]),
 	ok.

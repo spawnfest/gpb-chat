@@ -164,4 +164,4 @@ send_msg_assert_result(WS, To, Content, ExpectedResult) ->
     WS ! {send_msg, To, Content},
     timer:sleep(100),
     [MsgResponse] = get_all_msgs(WS),
-    ?assertEqual(MsgResponse#msg.content, ExpectedResult).
+    ?assertEqual(ExpectedResult, MsgResponse#msg.content).
