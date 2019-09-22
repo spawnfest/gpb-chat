@@ -41,18 +41,17 @@ websocket_handle({binary, Msg}, #{user := Login} = State) ->
 	logger:debug("DecodedMsg = ~p", [DecodedMsg]),
 	RespMsg = handle_msg(DecodedMsg, Login),
 	logger:debug("Response = ~p", [RespMsg]),
-	{reply, {binary, msg:encode_msg(RespMsg)}, State}.
-% websocket_handle(_Data, State) ->
-% 	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, _Data]),
-% 	{ok, State}.
+	{reply, {binary, msg:encode_msg(RespMsg)}, State};
+websocket_handle(_Data, State) ->
+	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, _Data]),
+	{ok, State}.
 
 websocket_info(Msg = #msg{to = To}, #{user := To} = State) ->
-	% logger:error("Sending ~p ~p:~p, ~p", [self(), ?MODULE, ?FUNCTION_NAME, Msg]),
-	{reply, {binary, msg:encode_msg(Msg)}, State}.
-% websocket_info(Info, State) ->
-% 	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, Info]),
-% 	{ok, State}.
-
+	logger:debug("Sending ~p ~p:~p, ~p", [self(), ?MODULE, ?FUNCTION_NAME, Msg]),
+	{reply, {binary, msg:encode_msg(Msg)}, State};
+websocket_info(Info, State) ->
+	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, Info]),
+	{ok, State}.
 
 terminate(_Reason, _PartialReq, #{} = State) ->
 	#{session_id := SessionId, user := UserLogin} = State,
