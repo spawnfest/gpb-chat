@@ -26,3 +26,7 @@ proto_js:
 	npm update
 	browserify priv/static/msg.js -o priv/static/msg_bundle.js
 	browserify priv/static/main.js -o priv/static/main_bundle.js
+
+rebuild_proto_js:
+	browserify priv/static/msg.js -o priv/static/msg_bundle.js
+	browserify priv/static/main.js -o priv/static/main_bundle.js

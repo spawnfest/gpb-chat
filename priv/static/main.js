@@ -13,11 +13,19 @@ connection.onerror = (error) => {
 };
 
 connection.onmessage = (event) => {
+  var Pbf = require('pbf');
+  var msg = require('./msg.js').msg;
   var pbf = new Pbf(event.data);
-  var obj = Example.read(pbf);
-  console.log('received', obj.content);
+  var obj = msg.read(pbf);
+  console.log('Msg received:');
+  console.log(Object.keys(obj));
+  console.log(obj["from"]);
+  console.log(obj["to"]);
+  console.log(obj["id"]);
+  console.log(obj["content"]);
+  console.log(obj["message_type"]);
   let li = document.createElement('li');
-  li.innerText = obj.content;
+  li.innerText = obj["content"];
   document.querySelector('#chat').append(li);
 };
 
@@ -27,11 +35,6 @@ document.querySelector('form').addEventListener('submit', (event) => {
   let from = document.querySelector('#from').value;
   let to = document.querySelector('#to').value;
   let msg_type = document.querySelector('#msg_type').value;
-  
-  console.log(from);
-  console.log(to);
-  console.log(message);
-  console.log(msg_type);
   
   var obj = {
     from:from,
@@ -50,5 +53,16 @@ document.querySelector('form').addEventListener('submit', (event) => {
   var buffer = pbf.finish();
 
   connection.send(buffer);
-  document.querySelector('#message').value = '';
+  document.querySelector('#message').value = generate_random_string(5);
+  document.querySelector('#msg_type').value = "2";
 });
+
+function generate_random_string(string_length){
+  let random_string = '';
+  let random_ascii;
+  for(let i = 0; i < string_length; i++) {
+      random_ascii = Math.floor((Math.random() * 25) + 97);
+      random_string += String.fromCharCode(random_ascii)
+  }
+  return random_string
+}
