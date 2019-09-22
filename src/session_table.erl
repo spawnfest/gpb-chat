@@ -24,7 +24,7 @@ add_session(User, Session) ->
     SessionId.
 
 get_user_sesions(User) ->
-    gen_server:call(?MODULE, {lookup, User}).
+    ets:lookup(?SESSION_TABLE_NAME, User).
 
 remove_user_sesions(User, SessionId) ->
     gen_server:cast(?MODULE, {remove, User, SessionId}).
@@ -34,15 +34,12 @@ remove_user_sesions(User, SessionId) ->
 %%====================================================================
 
 init(_Args) ->
-    ets:new(?SESSION_TABLE_NAME, [duplicate_bag, named_table]),
+    ets:new(?SESSION_TABLE_NAME, [duplicate_bag, named_table, public]),
    {ok, #{}}.
 
 handle_call({add, User, SessionId, Session}, _From, State) ->
     ets:insert(?SESSION_TABLE_NAME, {User, SessionId, Session}),
-    {reply, ok, State};
-handle_call({lookup, User}, _From, State) ->
-    Reply = ets:lookup(?SESSION_TABLE_NAME, User),
-    {reply, Reply, State}.
+    {reply, ok, State}.
 
 handle_cast({remove, User, SessionId}, State) ->
     Sessions = ets:lookup(?SESSION_TABLE_NAME, User),

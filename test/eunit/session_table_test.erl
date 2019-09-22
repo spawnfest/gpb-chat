@@ -52,7 +52,7 @@ session_table_removing_sesion_test() ->
     Rec2 = {User, SessionId2, Session2},
     Rec3 = {User, SessionId3, Session3},
     session_table:remove_user_sesions(User, SessionId1),
-
+    timer:sleep(100),
     Sessions = session_table:get_user_sesions(User),
     ?assertNot(in(Sessions, Rec1)),
     ?assert(in(Sessions, Rec2)),
