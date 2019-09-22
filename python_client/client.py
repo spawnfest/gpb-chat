@@ -5,9 +5,9 @@ import proto.msg_pb2
 import sys
 from datetime import datetime
 import time
+import ast
 
 Uri = "ws://localhost:8765/user/connect"
-Login = ""
 Token = "dummmy token"
 
 def make_msg(From, To, Token, Type):
@@ -26,25 +26,34 @@ def parse_and_print(Data):
     print(Res)
     return Res
         
-AuthMsg = make_msg("Alek", "server", "dummy", 1)
-BinAuthMsg = AuthMsg.SerializeToString()
-# print(AuthMsg)
-RealMsg = make_msg("Alek", "Alek", "Hi", 2)
-BinRealMsg = RealMsg.SerializeToString()
-
-async def auth():
+async def profile_n_messages(n):
+    AuthMsg = make_msg("Alek", "server", "dummy", 1)
+    BinAuthMsg = AuthMsg.SerializeToString()
+    RealMsg = make_msg("Alek", "Alek", "Hi", 2)
+    BinRealMsg = RealMsg.SerializeToString()
     async with websockets.connect(Uri) as websocket:
         await websocket.send(BinAuthMsg)
-        BinAuthRes = await websocket.recv()
-        AuthRes = parse_and_print(BinAuthRes)
-        print(AuthRes)
+        await websocket.recv()
+        # BinAuthRes = await websocket.recv()
+        # AuthRes = parse_and_print(BinAuthRes)
+        # print(AuthRes)
         start = time.time()
-        await websocket.send(BinRealMsg)
-        BinSendConfirm = await websocket.recv()
-        BinRecievieMsg = await websocket.recv()
+        for _ in range(n):
+            await websocket.send(BinRealMsg)
+            await websocket.recv() # HTTP_RESPONSE
+            await websocket.recv() # MESSAGE
         end = time.time()
-        parse_and_print(BinSendConfirm)
-        parse_and_print(BinRecievieMsg)
-        print(f"Execution time is {end - start} seconds")
+        # BinSendConfirm = await websocket.recv()
+        # BinRecievieMsg = await websocket.recv()
+        # parse_and_print(BinSendConfirm)
+        # parse_and_print(BinRecievieMsg)
+        exec_time = end - start
+        print(f"Execution time for all {n} messages is {exec_time} seconds")
+        print(f"Execution time for 1 message is {exec_time / n} seconds")
 
-asyncio.get_event_loop().run_until_complete(auth())
+
+if len(sys.argv) == 1:
+    asyncio.get_event_loop().run_until_complete(profile_n_messages(1))
+else:
+    n = int(ast.literal_eval(str(sys.argv))[1])
+    asyncio.get_event_loop().run_until_complete(profile_n_messages(n))
