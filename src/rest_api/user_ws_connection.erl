@@ -82,8 +82,12 @@ success_msg(DecodedMsg) ->
 		 message_type = 'HTTP_RESPONSE', content = "200",
 		 id = DecodedMsg#msg.id}.
 
-handle_msg(DecodedMsg = #msg{from = Login}, Login) ->
-	handle_msg(DecodedMsg);
+handle_msg(DecodedMsg = #msg{from = Login, id = Id}, Login) ->
+	DecodedMsgWithId = case Id of
+		"" -> DecodedMsg#msg{id = fresh_id()};
+		Id -> DecodedMsg
+	end,
+	handle_msg(DecodedMsgWithId);
 handle_msg(DecodedMsg, _) ->
 	auth_fail_msg(DecodedMsg).
 
@@ -119,3 +123,8 @@ save_msg_in_offline_api(DecodedMsg) ->
 	#msg{from = "server", to = DecodedMsg#msg.from,
 		 message_type = 'HTTP_RESPONSE', content = "201",
 		 id = DecodedMsg#msg.id}.
+
+fresh_id() ->
+    Bin = crypto:strong_rand_bytes(30),
+    binary_to_list(Bin).
+					

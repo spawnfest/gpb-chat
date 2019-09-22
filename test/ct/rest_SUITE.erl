@@ -46,6 +46,7 @@
         when_user_connects_he_appeares_in_session,
         user_sends_session_with_other_users_login,
         message_is_sent_from_user_to_not_connected_user,
+        when_msg_with_empty_id_is_send_server_provides_msg_id,
         message_is_sent_from_user_and_delivered_to_connected_user,
         many_messages_are_sent_from_user_and_delivered_to_connected_user
     ].
@@ -101,6 +102,15 @@ message_is_sent_from_user_to_not_connected_user(_Config) ->
     LoginAlek = "Alek",
     WSAlek = connect_and_authenticate_succesfully(LoginAlek, "dummy token"),
     send_msg_assert_result(WSAlek, "not existing user", "Hi", "404"),
+    ok.
+
+when_msg_with_empty_id_is_send_server_provides_msg_id(_Config) ->
+    LoginAlek = "Alek",
+    WS = connect_and_authenticate_succesfully(LoginAlek, "dummy token"),
+    WS ! {send_msg, "Krzys", "Kasia", "Ho Ho Ho"},
+    timer:sleep(100), % time for request
+    [Msg] = get_all_msgs(WS),
+    ?assertNotEqual("", Msg#msg.id),
     ok.
 
 message_is_sent_from_user_and_delivered_to_connected_user(_Config) ->
