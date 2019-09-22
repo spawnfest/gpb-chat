@@ -92,5 +92,15 @@ The tests, as well as rest of code, use *proxy* module, which works like interfa
 
 
 #### JS client
+Requires `npm`.
 
-Requires `npm install -g protobufjs`.
+You can try to chat by yourself with following setup:
+ - In console run `make proto_js`
+ - Than, in console run `make shell`
+ - Open [http://localhost:8765/client](http://localhost:8765/client) in browser
+ -  Write a message
+
+Notice that firs message is `AUTH_TOKEN` an all next are `MESSAGE` type.
+Browser will switch automatically for that :)
+
+You can see the log messages for sent end received messages.
