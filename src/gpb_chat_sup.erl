@@ -36,11 +36,19 @@ init(_) ->
       intensity => 10,
       period => 10},
     Children = [
+        config(),
         cowboy_sup_child(),
         auth_sup_child(),
         session_table()
     ],
     {ok, {SupFlags, Children}}.
+
+config() ->
+    #{id => config,
+	  start => {config, start_link, []},
+      restart => permanent,
+      shutdown => brutal_kill,
+      type => worker}.
 
 cowboy_sup_child() ->
     #{id => my_cowboy_sup,
