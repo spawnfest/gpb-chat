@@ -103,4 +103,11 @@ You can try to chat by yourself with following setup:
 Notice that firs message is `AUTH_TOKEN` an all next are `MESSAGE` type.
 Browser will switch automatically for that :)
 
-You can see the log messages for sent end received messages.
+You can see the log messages on console for sending end receiving messages.
+Unfortunately I did not master JS enough to decode message properly on client side :(
+therefore only '' is printed on the screen.
+
+But still you can see messages passing if you open 2 browser tabs:
+First just press send once,
+second change `from` to your name and press send 3 times, than
+go back to 1st tab and see that you got 3 more dots in dots column at the web page top.
