@@ -1,7 +1,5 @@
 -module(auth_api).
 
--include("hrl/config.hrl").
-
 -export([start/1, is_valid_token/2]).
 
 -callback start(Opts :: term()) -> ok | {error, Reason :: term()}.
@@ -10,7 +8,13 @@
     true | false | {error, Reason :: term()}.
 
 start(Opts) ->
-    ?AUTH_MODULE:start(Opts).
+    Impl = impl(),
+    Impl:start_link(Opts).
 
 is_valid_token(Login, Token) ->
-    ?AUTH_MODULE:is_valid_token(Login, Token).
+    Impl = impl(),
+    Impl:is_valid_token(Login, Token).
+
+impl() ->
+    [{_, Impl}] = config:get_module(auth_api),
+    Impl.

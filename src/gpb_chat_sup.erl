@@ -36,9 +36,11 @@ init(_) ->
       intensity => 10,
       period => 10},
     Children = [
-        cowboy_sup_child(),
+        config(),
+        session_table(),
         auth_sup_child(),
-        session_table()
+        offline_mod(),
+        cowboy_sup_child()
     ],
     {ok, {SupFlags, Children}}.
 
@@ -59,6 +61,20 @@ auth_sup_child() ->
 session_table() ->
     #{id => session_table,
 	  start => {session_table, start_link, []},
+      restart => permanent,
+      shutdown => brutal_kill,
+      type => worker}.
+
+config() ->
+    #{id => config,
+	  start => {config, start_link, []},
+      restart => permanent,
+      shutdown => brutal_kill,
+      type => worker}.
+
+offline_mod() ->
+    #{id => offline_api,
+	  start => {offline_api, start_link, []},
       restart => permanent,
       shutdown => brutal_kill,
       type => worker}.

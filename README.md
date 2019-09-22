@@ -82,6 +82,7 @@ python python_client/client.py 3500
 ```
 
 Results on my Mac are following:
+
 ```
 Execution time for all 3500 messages is 1.023620843887329 seconds
 Execution time for 1 message is 0.0002924630982535226 seconds

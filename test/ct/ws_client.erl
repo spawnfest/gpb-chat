@@ -24,6 +24,9 @@ onconnect(_WSReq, State) ->
     {ok, State}.
 
 ondisconnect({remote, closed}, State) ->
+    {reconnect, State};
+ondisconnect(Disc, State) ->
+    logger:error("Unexpected Disc = ~p, State = ~p", [Disc, State]),
     {reconnect, State}.
 
 websocket_handle({pong, _}, _ConnState, State) ->
@@ -31,7 +34,10 @@ websocket_handle({pong, _}, _ConnState, State) ->
 websocket_handle({binary, Msg}, _ConnState, #{msgs := Msgs} = State) ->
     DecodedMsg = msg:decode_msg(Msg, msg),
     NewState = State#{msgs => [DecodedMsg | Msgs]},
-    {ok, NewState}.
+    {ok, NewState};
+websocket_handle(Req, _ConnState, State) ->
+    logger:error("Unexpected Req = ~p, State = ~p", [Req, State]),
+    {ok, State}.
 
 websocket_info(auth, _ConnState, State) ->
     #{login := Login, token := Token} = State,
@@ -47,7 +53,10 @@ websocket_info({send_msg, ToLogin, Content}, _ConnState, State) ->
 websocket_info({get_all_msgs, Pid}, _ConnState, #{login := Login, msgs := Msgs} = State) ->
     Pid ! {msgs, Msgs},
     logger:error("~p Msgs = ~p", [Login, Msgs]),
-    {ok, State#{msgs => []}}.
+    {ok, State#{msgs => []}};
+websocket_info(Msg, _ConnState, State) ->
+    logger:error("Unexpected Msg = ~p, State = ~p", [Msg, State]),
+    {ok, State}.
 
 websocket_terminate(_Reason, _ConnState, _State) ->
     ok.
@@ -59,9 +68,11 @@ websocket_terminate(_Reason, _ConnState, _State) ->
 make_auth_token(Login, Token) ->
     Msg = #msg{from = Login, to = "server", message_type = 'AUTH_TOKEN',
          content = Token, id = "Auth " ++ Login},
+    ct:log("Module = ~p Msg = ~p", [?MODULE, Msg]),
     msg:encode_msg(Msg).
 
 make_msg(From, To, Content) ->
     Msg = #msg{from = From, to = To, message_type = 'MESSAGE',
          content = Content, id = "Msg from " ++ From ++ " to " ++ To},
+    ct:log("Module = ~p Msg = ~p", [?MODULE, Msg]),
     msg:encode_msg(Msg).
