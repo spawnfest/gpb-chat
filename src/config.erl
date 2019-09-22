@@ -18,7 +18,7 @@ start_link() ->
 
 impl(Mod) ->
     [{_, Impl}] = get_module(Mod),
-    logger:error("Mod = ~p, Impl = ~p", [Mod, Impl]),
+    logger:debug("Mod = ~p, Impl = ~p", [Mod, Impl]),
     Impl.
 
 %%====================================================================
@@ -31,9 +31,10 @@ get_module(Module) ->
 init(_Args) ->
     ets:new(?CONFIG_TABLE_NAME, [duplicate_bag, named_table]),
     Envs = application:get_all_env(gpb_chat),
-    logger:error("Envs = ~p", [Envs]),
     lists:map(
-        fun(Mod) ->
+        fun({log_level, Level}) ->
+                set_log_level(Level);
+           (Mod) ->
             ets:insert(?CONFIG_TABLE_NAME, Mod)
         end, Envs),
     {ok, #{}}.
@@ -54,3 +55,6 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
    {ok, State}.
+
+set_log_level(Level) ->
+    logger:set_primary_config(level, Level).
