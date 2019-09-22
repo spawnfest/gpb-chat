@@ -20,7 +20,7 @@ start_link() ->
 
 add_session(User, Session) ->
     SessionId = crypto:strong_rand_bytes(30),
-    gen_server:cast(?MODULE, {add, User, SessionId, Session}),
+    gen_server:call(?MODULE, {add, User, SessionId, Session}),
     SessionId.
 
 get_user_sesions(User) ->
@@ -37,13 +37,12 @@ init(_Args) ->
     ets:new(?SESSION_TABLE_NAME, [duplicate_bag, named_table]),
    {ok, #{}}.
 
+handle_call({add, User, SessionId, Session}, _From, State) ->
+    ets:insert(?SESSION_TABLE_NAME, {User, SessionId, Session}),
+    {reply, ok, State};
 handle_call({lookup, User}, _From, State) ->
     Reply = ets:lookup(?SESSION_TABLE_NAME, User),
     {reply, Reply, State}.
-
-handle_cast({add, User, SessionId, Session}, State) ->
-    ets:insert(?SESSION_TABLE_NAME, {User, SessionId, Session}),
-    {noreply, State};
 
 handle_cast({remove, User, SessionId}, State) ->
     Sessions = ets:lookup(?SESSION_TABLE_NAME, User),

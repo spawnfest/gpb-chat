@@ -28,7 +28,7 @@ ondisconnect({remote, closed}, State) ->
 
 websocket_handle({pong, _}, _ConnState, State) ->
     {ok, State};
-websocket_handle({text, Msg}, _ConnState, #{msgs := Msgs} = State) ->
+websocket_handle({binary, Msg}, _ConnState, #{msgs := Msgs} = State) ->
     DecodedMsg = msg:decode_msg(Msg, msg),
     NewState = State#{msgs => [DecodedMsg | Msgs]},
     {ok, NewState}.
@@ -36,14 +36,14 @@ websocket_handle({text, Msg}, _ConnState, #{msgs := Msgs} = State) ->
 websocket_info(auth, _ConnState, State) ->
     #{login := Login, token := Token} = State,
     BinAuthToken = make_auth_token(Login, Token),
-    {reply, {text, BinAuthToken}, State};
+    {reply, {binary, BinAuthToken}, State};
 websocket_info({send_msg, FromLogin, ToLogin, Content}, _ConnState, State) ->
     BinMsg = make_msg(FromLogin, ToLogin, Content),
-    {reply, {text, BinMsg}, State};
+    {reply, {binary, BinMsg}, State};
 websocket_info({send_msg, ToLogin, Content}, _ConnState, State) ->
     #{login := FromLogin} = State,
     BinMsg = make_msg(FromLogin, ToLogin, Content),
-    {reply, {text, BinMsg}, State};
+    {reply, {binary, BinMsg}, State};
 websocket_info({get_all_msgs, Pid}, _ConnState, #{login := Login, msgs := Msgs} = State) ->
     Pid ! {msgs, Msgs},
     logger:error("~p Msgs = ~p", [Login, Msgs]),

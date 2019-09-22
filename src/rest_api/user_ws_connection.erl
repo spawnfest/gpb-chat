@@ -18,8 +18,9 @@ init(Req, _Opts) ->
 websocket_init(State) ->
 	{ok, State}.
 
-websocket_handle({text, Msg}, State = not_authenticated) ->
+websocket_handle({binary, Msg}, State = not_authenticated) ->
 	DecodedMsg = msg:decode_msg(Msg, msg),
+	logger:debug("DecodedMsg = ~p", [DecodedMsg]),
 	{Response, NewState} = case DecodedMsg#msg.message_type of
 		'AUTH_TOKEN' ->
 			case is_valid_token(DecodedMsg) of
@@ -33,25 +34,32 @@ websocket_handle({text, Msg}, State = not_authenticated) ->
 		_ ->
 			{auth_fail_msg(DecodedMsg), State}
 		end,
-		{reply, {text, msg:encode_msg(Response)}, NewState};
-websocket_handle({text, Msg}, #{user := Login} = State) ->
+		logger:debug("Response = ~p", [Response]),
+		{reply, {binary, msg:encode_msg(Response)}, NewState};
+websocket_handle({binary, Msg}, #{user := Login} = State) ->
 	DecodedMsg = msg:decode_msg(Msg, msg),
+	logger:debug("DecodedMsg = ~p", [DecodedMsg]),
 	RespMsg = handle_msg(DecodedMsg, Login),
-	{reply, {text, msg:encode_msg(RespMsg)}, State}.
+	logger:debug("Response = ~p", [RespMsg]),
+	{reply, {binary, msg:encode_msg(RespMsg)}, State}.
 % websocket_handle(_Data, State) ->
 % 	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, _Data]),
 % 	{ok, State}.
 
 websocket_info(Msg = #msg{to = To}, #{user := To} = State) ->
 	% logger:error("Sending ~p ~p:~p, ~p", [self(), ?MODULE, ?FUNCTION_NAME, Msg]),
-	{reply, {text, msg:encode_msg(Msg)}, State}.
+	{reply, {binary, msg:encode_msg(Msg)}, State}.
 % websocket_info(Info, State) ->
 % 	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, Info]),
 % 	{ok, State}.
 
-terminate(_Reason, _PartialReq, State) ->
+
+terminate(_Reason, _PartialReq, #{} = State) ->
 	#{session_id := SessionId, user := UserLogin} = State,
 	session_table:remove_user_sesions(UserLogin, SessionId),
+	ok;
+terminate(Reason, _PartialReq, State) ->
+	logger:error("~p:~p, ~p ~p", [?MODULE, ?FUNCTION_NAME, Reason, State]),
 	ok.
 %%====================================================================
 %% Helper functions
@@ -87,6 +95,7 @@ handle_msg(DecodedMsg = #msg{message_type = 'MESSAGE', to = To}) ->
 			success_msg(DecodedMsg)
 	end;
 handle_msg(DecodedMsg) ->
+	logger:error("Unknow message = ~p", [DecodedMsg]),
 	#msg{from = "server", to = DecodedMsg#msg.from,
 		 message_type = 'HTTP_RESPONSE', content = "405",
 		 id = DecodedMsg#msg.id}.
