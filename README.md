@@ -86,3 +86,9 @@ Results on my Mac are following:
 Execution time for all 3500 messages is 1.023620843887329 seconds
 Execution time for 1 message is 0.0002924630982535226 seconds
 ```
+
+#### offline_api 
+Is an example module showing the approach to messages storage system.
+It can be off or can be used with `ets` table.
+You can also easily implement you own storage system.
+The tests as well as rest of code uses *proxy* module, which works like interface in OOP.

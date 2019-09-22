@@ -33,6 +33,7 @@ websocket_handle({binary, Msg}, #state{is_authenticated = false} = State) ->
 					SessionId = session_table:add_session(UserLogin, self()),
 					NewSState = State#state{ is_authenticated = true,
 						session_id = SessionId, users_login = UserLogin},
+					self() ! offline,
 					{success_msg(DecodedMsg), NewSState};
 				_ -> {auth_fail_msg(DecodedMsg), State}
 			end;
@@ -54,8 +55,16 @@ websocket_handle(_Data, State) ->
 websocket_info(Msg = #msg{to = To}, #state{users_login = To} = State) ->
 	logger:debug("Sending ~p ~p:~p, ~p", [self(), ?MODULE, ?FUNCTION_NAME, Msg]),
 	{reply, {binary, msg:encode_msg(Msg)}, State};
+websocket_info(offline, #state{users_login = To} = State) ->
+	OfflineMessages = offline_api:get_users_messages(To),
+	lists:foreach(
+		fun({Usr, Msg}) -> 
+			self() ! Msg,
+			offline_api:remove_users_message(Usr, Msg)
+		end, OfflineMessages),
+	{ok, State};
 websocket_info(Info, State) ->
-	logger:error("~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, Info]),
+	logger:error("Unexpected info: ~p:~p, ~p", [?MODULE, ?FUNCTION_NAME, Info]),
 	{ok, State}.
 
 terminate(_Reason, _PartialReq, 

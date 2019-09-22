@@ -41,8 +41,9 @@
  all() ->
      [
          message_is_sent_to_disconnected_user_is_saved_by_offline_api,
-         many_messages_are_sent_to_disconnected_user_are_saved_by_offline_api
-        %  message_is_sent_to_disconnected_user_and_delivered_when_user_connects
+         many_messages_are_sent_to_disconnected_user_are_saved_by_offline_api,
+         message_is_sent_to_disconnected_user_and_delivered_when_user_connects,
+         many_messages_are_sent_to_disconnected_user_and_delivered_when_user_connects
      ].
 
 
@@ -83,11 +84,33 @@ message_is_sent_to_disconnected_user_and_delivered_when_user_connects(_Config) -
     WSAlek = connect_and_authenticate_succesfully(LoginAlek, "dummy token"),
     send_msg_assert_result(WSAlek, LoginJulia, Content, "201"),
     timer:sleep(100),
-    WSJulia = connect_and_authenticate_succesfully(LoginJulia, "dummy token"),
-    [MsgFromAlek] = get_all_msgs(WSJulia),
-    ?assertEqual(MsgFromAlek#msg.from, LoginAlek),
-    ?assertEqual(MsgFromAlek#msg.to, LoginJulia),
-    ?assertEqual(MsgFromAlek#msg.content, Content),
+    {ok, WS} = ws_client:start_link(?URL_USER_CONN, LoginJulia, "dummy token"),
+    timer:sleep(100), % time to connect
+    WS ! auth,
+    timer:sleep(100), % time for request
+    Msgs = get_all_msgs(WS),
+    ?assertEqual(2, length(Msgs)),
+    ExpectedContents = ["200", Content],
+    assert_messages_contents(Msgs, ExpectedContents, 2),
+    ok.
+
+many_messages_are_sent_to_disconnected_user_and_delivered_when_user_connects(_Config) ->
+    LoginAlek = msg_helper:fresh_login(),
+    LoginJulia = msg_helper:fresh_login(),
+    Contents = ["A", "B", "C"],
+    WSAlek = connect_and_authenticate_succesfully(LoginAlek, "dummy token"),
+    lists:foreach(
+        fun(Content) ->
+            send_msg_assert_result(WSAlek, LoginJulia, Content, "201")
+        end, Contents),
+    timer:sleep(100),
+    {ok, WS} = ws_client:start_link(?URL_USER_CONN, LoginJulia, "dummy token"),
+    timer:sleep(100), % time to connect
+    WS ! auth,
+    timer:sleep(100), % time for request
+    Msgs = get_all_msgs(WS),
+    ExpectedContents = ["200" | Contents],
+    assert_messages_contents(Msgs, ExpectedContents, 4),
     ok.
 
  %%--------------------------------------------------------------------
@@ -116,3 +139,10 @@ send_msg_assert_result(WS, To, Content, ExpectedResult) ->
     timer:sleep(100),
     [MsgResponse] = get_all_msgs(WS),
     ?assertEqual(MsgResponse#msg.content, ExpectedResult).
+
+assert_messages_contents(Msgs, ExpectedContents, ExpectedLen) ->
+    ?assertEqual(ExpectedLen, length(Msgs)),
+    MContents = lists:map(fun(#msg{content = C}) -> C end, Msgs),
+    ?assertEqual(length(MContents), length(ExpectedContents)),
+    ?assertEqual([], MContents -- ExpectedContents),
+    ?assertEqual([], ExpectedContents -- MContents).
