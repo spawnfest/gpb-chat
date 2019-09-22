@@ -11,9 +11,10 @@ Project tries to provide following changes:
 Proto files are generated with `make compile`.
 
 ### Requirements
-
-- Erlang OTP version 22
-- rebar3
+ - Erlang OTP version 22
+ - rebar3
+ - protoc (libprotoc 3.9.1)
+ - Python 3.6.8
 
 ### How to test?
 
@@ -60,3 +61,28 @@ msg{
 If user B is not connected (no records in `session table`), than `HTTP_RESPONSE` with content `"401"` is responded. If user B is connected than message is passed to all users B sessions and user A receives `HTTP_RESPONSE` with content `"200"`.
 
 When connection is terminated it is removed from `session table`.
+
+#### Python client
+
+There is python script added connecting a user and sending messages to yourself.
+Script accepts number of messages to be send as an argument with default value set to 1 message.
+This is example use and the results:
+In first console (terminal) run:
+
+```
+cd $PATH_TOREPO
+make shell
+```
+
+In first console (terminal) run:
+
+```
+$ cd $PATH_TOREPO
+python python_client/client.py 3500
+```
+
+Results on my Mac are following:
+```
+Execution time for all 3500 messages is 1.023620843887329 seconds
+Execution time for 1 message is 0.0002924630982535226 seconds
+```
