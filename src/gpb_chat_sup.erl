@@ -39,7 +39,8 @@ init(_) ->
         config(),
         cowboy_sup_child(),
         auth_sup_child(),
-        session_table()
+        session_table(),
+        offline_api()
     ],
     {ok, {SupFlags, Children}}.
 
@@ -70,3 +71,9 @@ session_table() ->
       restart => permanent,
       shutdown => brutal_kill,
       type => worker}.
+
+offline_api() ->
+    #{id => offline_api,
+	  start => {offline_api, start_link, []},
+      restart => permanent,
+      shutdown => brutal_kill}.

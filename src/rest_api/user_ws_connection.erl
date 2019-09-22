@@ -90,7 +90,12 @@ handle_msg(DecodedMsg, _) ->
 handle_msg(DecodedMsg = #msg{message_type = 'MESSAGE', to = To}) ->
 	case session_table:get_user_sesions(To) of
 		[] ->
-			msg_cannot_be_delivered(DecodedMsg);
+			case config:impl(offline_api) of
+				offline_off ->
+					msg_cannot_be_delivered(DecodedMsg);
+				_ ->
+					save_msg_in_offline_api(DecodedMsg)
+			end;
 		Sessions ->
 			lists:foreach(
 				fun({_Usr, _SessId, Session}) ->
@@ -107,4 +112,10 @@ handle_msg(DecodedMsg) ->
 msg_cannot_be_delivered(DecodedMsg) ->
 	#msg{from = "server", to = DecodedMsg#msg.from,
 		 message_type = 'HTTP_RESPONSE', content = "404",
+		 id = DecodedMsg#msg.id}.
+
+save_msg_in_offline_api(DecodedMsg) ->
+	offline_api:save_message(DecodedMsg),
+	#msg{from = "server", to = DecodedMsg#msg.from,
+		 message_type = 'HTTP_RESPONSE', content = "201",
 		 id = DecodedMsg#msg.id}.
