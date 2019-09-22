@@ -89,3 +89,8 @@ Execution time for 1 message is 0.00023671722412109376 seconds
 
 You can also easily implement your storage system.
 The tests, as well as rest of code, use *proxy* module, which works like interface in OOP.
+
+
+#### JS client
+
+Requires `npm install -g protobufjs`.

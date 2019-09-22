@@ -23,7 +23,10 @@ start_link() ->
     Dispatch = cowboy_router:compile([
 		{'_', [
 			{"/", live_check, []},
-			{"/user/connect", user_ws_connection, []}
+			{"/user/connect", user_ws_connection, []},
+			% JS example client
+			{"/client", cowboy_static, {priv_file, gpb_chat, "index.html"}},
+			{"/static/[...]", cowboy_static, {priv_dir, gpb_chat, "static"}}
 		]}
 	]),
 	{ok, _} = cowboy:start_clear(http, [{port, 8765}], #{
